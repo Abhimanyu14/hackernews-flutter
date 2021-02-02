@@ -54,6 +54,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _buildItem(Article article) {
     return Padding(
+      // Expansion Tile selection bug fix in list
+      key: Key(article.text),
       padding: const EdgeInsets.all(16.0),
       child: ExpansionTile(
         title: Text(
