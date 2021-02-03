@@ -1,20 +1,61 @@
 import 'dart:convert' as json;
 
-import 'package:built_value/built_value.dart';
+import 'src/article.dart';
+import 'src/serializers.dart';
 
-part 'json_parsing.g.dart';
+/*abstract class Article implements Built<Article, ArticleBuilder> {
+  // Serializer
+  static Serializer<Article> get serializer => _$articleSerializer;
 
-abstract class Article implements Built<Article, ArticleBuilder> {
-  String get text;
-  String get domain;
+  @nullable
+  int get id;
+
+  @nullable
+  bool get deleted;
+
+  @nullable
+  String get type;
+
+  @nullable
   String get by;
-  String get age;
+
+  @nullable
+  int get time;
+
+  @nullable
+  String get text;
+
+  @nullable
+  bool get dead;
+
+  @nullable
+  int get parent;
+
+  @nullable
+  int get poll;
+
+  @nullable
+  BuiltList<int> get kids;
+
+  @nullable
+  String get url;
+
+  @nullable
   int get score;
-  int get commentsCount;
+
+  @nullable
+  String get title;
+
+  @nullable
+  BuiltList<int> get parts;
+
+  @nullable
+  int get descendants;
 
   Article._();
+
   factory Article([void Function(ArticleBuilder) updates]) = _$Article;
-}
+}*/
 
 /*class Article {
   final String text;
@@ -59,6 +100,7 @@ Article parseArticle(String jsonStr) {
   final parsed = json.jsonDecode(jsonStr);
 
   // To convert dynamic to strongly typed object
-  final article = Article.fromJson(parsed);
+  final article =
+      standardSerializers.deserializeWith(Article.serializer, parsed);
   return article;
 }
