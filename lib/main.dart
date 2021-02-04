@@ -1,29 +1,48 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:hackernews/src/hacker_news_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'json_parsing.dart';
-import 'src/article.dart';
+import 'package:hackernews/src/article.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  final hackerNewsBloc = HackerNewsBloc();
+  runApp(MyApp(bloc: hackerNewsBloc));
+}
 
 class MyApp extends StatelessWidget {
+  MyApp({
+    Key key,
+    this.bloc,
+  }) : super(key: key);
+
+  final HackerNewsBloc bloc;
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Hacker News',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(
+        title: 'Flutter Hacker News',
+        bloc: bloc,
+      ),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({
+    Key key,
+    this.title,
+    this.bloc,
+  }) : super(key: key);
 
+  final HackerNewsBloc bloc;
   final String title;
 
   @override
@@ -31,74 +50,44 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<int> _ids = [
-    26006656,
-    26010237,
-    26010927,
-    26011025,
-    26007100,
-    26010782,
-    26009542,
-    25997906,
-    26011309,
-    25993624,
-    25989115,
-    26010977,
-    26006841,
-    26010312,
-    26006138,
-    26006731,
-    26005330,
-    25993822,
-    26002335,
-    25995835,
-    26002657,
-    26005758,
-    26004552,
-    26007444,
-    26005038,
-    25995623,
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: ListView(
-        children: _ids
-            .map(
-              (id) => FutureBuilder<Article>(
-                future: _getArticle(id),
-                builder:
-                    (BuildContext context, AsyncSnapshot<Article> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    return _buildItem(snapshot.data);
-                  } else {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  }
-                },
-              ),
-            )
-            .toList(),
+      body: StreamBuilder<UnmodifiableListView<Article>>(
+        stream: widget.bloc.articles,
+        initialData: UnmodifiableListView<Article>([]),
+        builder: (
+          BuildContext context,
+          AsyncSnapshot<UnmodifiableListView<Article>> snapshot,
+        ) =>
+            ListView(
+          children: snapshot.data.map(_buildItem).toList(),
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 0,
+        items: [
+          BottomNavigationBarItem(
+            label: 'Top Stories',
+            icon: Icon(Icons.trending_up),
+          ),
+          BottomNavigationBarItem(
+            label: 'New Stories',
+            icon: Icon(Icons.new_releases),
+          ),
+        ],
+        onTap: (index) {
+          if (index == 0) {
+            widget.bloc.storiesType.add(StoriesType.topStories);
+          } else if (index == 1) {
+            widget.bloc.storiesType.add(StoriesType.newStories);
+          }
+        },
       ),
     );
-  }
-
-  Future<Article> _getArticle(int id) async {
-    final itemUrl = 'https://hacker-news.firebaseio.com/v0/item/${id}.json';
-    final itemResponse = await http.get(itemUrl);
-    if (itemResponse.statusCode == 200) {
-      return parseArticle(itemResponse.body);
-    } else {
-      return null;
-    }
   }
 
   Widget _buildItem(Article article) {
