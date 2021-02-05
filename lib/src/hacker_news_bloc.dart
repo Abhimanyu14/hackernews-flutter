@@ -12,34 +12,6 @@ enum StoriesType {
 }
 
 class HackerNewsBloc {
-  Stream<List<Article>> get articles => _articlesSubject.stream;
-
-  final _articlesSubject = BehaviorSubject<UnmodifiableListView<Article>>();
-
-  var _articles = <Article>[];
-
-  Sink<StoriesType> get storiesType => _storiesTypeController.sink;
-
-  final _storiesTypeController = StreamController<StoriesType>();
-
-  HackerNewsBloc() {
-    _getArticlesAndUpdate(_topStoriesIds);
-
-    _storiesTypeController.stream.listen((storiesType) {
-      if (storiesType == StoriesType.newStories) {
-        _getArticlesAndUpdate(_newStoriesIds);
-      } else if (storiesType == StoriesType.topStories) {
-        _getArticlesAndUpdate(_topStoriesIds);
-      }
-    });
-  }
-
-  void _getArticlesAndUpdate(List<int> articleIds) {
-    _updateArticles(articleIds).then((_) {
-      _articlesSubject.add(UnmodifiableListView(_articles));
-    });
-  }
-
   static List<int> _topStoriesIds = [
     26006656,
     26010237,
@@ -57,6 +29,35 @@ class HackerNewsBloc {
     25989115,
     26010977,
   ];
+
+  final _isLoadingSubject = BehaviorSubject<bool>.seeded(false);
+  final _articlesSubject = BehaviorSubject<UnmodifiableListView<Article>>();
+  final _storiesTypeController = StreamController<StoriesType>();
+
+  Stream<bool> get isLoading => _isLoadingSubject.stream;
+
+  Stream<List<Article>> get articles => _articlesSubject.stream;
+
+  Sink<StoriesType> get storiesType => _storiesTypeController.sink;
+  var _articles = <Article>[];
+
+  HackerNewsBloc() {
+    _getArticlesAndUpdate(_topStoriesIds);
+    _storiesTypeController.stream.listen((storiesType) {
+      if (storiesType == StoriesType.newStories) {
+        _getArticlesAndUpdate(_newStoriesIds);
+      } else if (storiesType == StoriesType.topStories) {
+        _getArticlesAndUpdate(_topStoriesIds);
+      }
+    });
+  }
+
+  void _getArticlesAndUpdate(List<int> articleIds) async {
+    _isLoadingSubject.add(true);
+    await _updateArticles(articleIds);
+    _articlesSubject.add(UnmodifiableListView(_articles));
+    _isLoadingSubject.add(false);
+  }
 
   Future<Article> _getArticle(int id) async {
     final itemUrl = 'https://hacker-news.firebaseio.com/v0/item/$id.json';

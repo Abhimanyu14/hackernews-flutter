@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hackernews/src/hacker_news_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -50,11 +51,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  int _currentIndex = 0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        leading: LoadingInfo(isLoading: widget.bloc.isLoading),
       ),
       body: StreamBuilder<UnmodifiableListView<Article>>(
         stream: widget.bloc.articles,
@@ -68,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
+        currentIndex: _currentIndex,
         items: [
           BottomNavigationBarItem(
             label: 'Top Stories',
@@ -85,6 +89,9 @@ class _MyHomePageState extends State<MyHomePage> {
           } else if (index == 1) {
             widget.bloc.storiesType.add(StoriesType.newStories);
           }
+          setState(() {
+            _currentIndex = index;
+          });
         },
       ),
     );
@@ -120,6 +127,67 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class LoadingInfo extends StatefulWidget {
+  const LoadingInfo({
+    Key key,
+    this.isLoading,
+  }) : super(key: key);
+
+  final Stream<bool> isLoading;
+
+  @override
+  _LoadingInfoState createState() => _LoadingInfoState();
+}
+
+class _LoadingInfoState extends State<LoadingInfo>
+    with TickerProviderStateMixin {
+  AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 300),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder(
+      stream: widget.isLoading,
+      builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+        if (snapshot.hasData && snapshot.data) {
+          _controller.forward().then((value) => _controller.reverse());
+          return FadeTransition(
+            opacity: Tween(
+              begin: 0.5,
+              end: 1.0,
+            ).animate(
+              CurvedAnimation(
+                curve: Curves.easeIn,
+                parent: _controller,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Icon(FontAwesomeIcons.hackerNewsSquare),
+            ),
+          );
+        } else {
+          return Opacity(
+            opacity: 0.5,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Icon(FontAwesomeIcons.hackerNewsSquare),
+            ),
+          );
+        }
+      },
     );
   }
 }
