@@ -18,6 +18,7 @@ class HackerNewsApiError extends Error {
 }
 
 class HackerNewsBloc {
+  HashMap<int, Article> _cachedArticles = HashMap<int, Article>();
   static const _baseUrl = 'https://hacker-news.firebaseio.com/v0/';
   final _isLoadingSubject = BehaviorSubject<bool>.seeded(false);
   final _articlesSubject = BehaviorSubject<UnmodifiableListView<Article>>();
@@ -60,10 +61,14 @@ class HackerNewsBloc {
   }
 
   Future<Article> _getArticle(int id) async {
+    if (_cachedArticles.containsKey(id)) {
+      return _cachedArticles[id];
+    }
     final url = '$_baseUrl/item/$id.json';
     final httpResponse = await http.get(url);
     if (httpResponse.statusCode == 200) {
-      return parseArticle(httpResponse.body);
+      _cachedArticles[id] = parseArticle(httpResponse.body);
+      return _cachedArticles[id];
     }
     throw HackerNewsApiError('Article $id could not be fetched.');
   }

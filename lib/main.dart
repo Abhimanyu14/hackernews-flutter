@@ -113,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Text('${article.type}'),
+              Text('${article.descendants} comments'),
               IconButton(
                 icon: Icon(Icons.launch),
                 onPressed: () async {
