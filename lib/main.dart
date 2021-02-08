@@ -165,7 +165,7 @@ class _LoadingInfoState extends State<LoadingInfo>
           _controller.forward().then((value) => _controller.reverse());
           return FadeTransition(
             opacity: Tween(
-              begin: 0.5,
+              begin: 0.1,
               end: 1.0,
             ).animate(
               CurvedAnimation(
@@ -180,7 +180,7 @@ class _LoadingInfoState extends State<LoadingInfo>
           );
         } else {
           return Opacity(
-            opacity: 0.5,
+            opacity: 0,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Icon(FontAwesomeIcons.hackerNewsSquare),
