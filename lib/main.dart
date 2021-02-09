@@ -20,12 +20,15 @@ class MyApp extends StatelessWidget {
 
   final HackerNewsBloc bloc;
 
+  static const primaryColor = Color(0xFFFFFFFF);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Hacker News',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primaryColor: primaryColor,
+        scaffoldBackgroundColor: primaryColor,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: MyHomePage(
@@ -57,8 +60,12 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(
+          widget.title,
+          style: TextStyle(fontFamily: 'Fredoka One'),
+        ),
         leading: LoadingInfo(isLoading: widget.bloc.isLoading),
+        elevation: 0.0,
       ),
       body: StreamBuilder<UnmodifiableListView<Article>>(
         stream: widget.bloc.articles,
@@ -72,6 +79,8 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.black,
+        unselectedItemColor: Colors.white54,
         currentIndex: _currentIndex,
         items: [
           BottomNavigationBarItem(
@@ -101,29 +110,38 @@ class _MyHomePageState extends State<MyHomePage> {
     return Padding(
       // Expansion Tile selection bug fix in list
       key: Key(article.title),
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 4.0,
+        vertical: 12.0,
+      ),
       child: ExpansionTile(
         title: Text(
           article.title,
-          style: TextStyle(
-            fontSize: 24.0,
-          ),
+          style: TextStyle(fontSize: 24.0, fontFamily: 'Fredoka One'),
         ),
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Text('${article.descendants} comments'),
-              IconButton(
-                icon: Icon(Icons.launch),
-                onPressed: () async {
-                  final url = "${article.url}";
-                  if (await canLaunch(url)) {
-                    launch(url);
-                  }
-                },
-              )
-            ],
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text('${article.descendants} comments'),
+                SizedBox(
+                  width: 16.0,
+                ),
+                IconButton(
+                  icon: Icon(Icons.launch),
+                  onPressed: () async {
+                    final url = "${article.url}";
+                    if (await canLaunch(url)) {
+                      launch(url);
+                    }
+                  },
+                )
+              ],
+            ),
           ),
         ],
       ),
